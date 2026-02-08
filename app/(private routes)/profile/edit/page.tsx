@@ -5,15 +5,17 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { User } from "@/types/user";
+import { useAuthStore } from "@/lib/store/authStore";
 
 function EditProfile() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const setUser = useAuthStore((state) => state.setUser);
+  const [user, setLocalUser] = useState<User | null>(null);
   const [userName, setUserName] = useState("");
 
   useEffect(() => {
     getMe().then((data) => {
-      setUser(data);
+      setLocalUser(data);
       setUserName(data.username ?? "");
     });
   }, []);
@@ -25,7 +27,8 @@ function EditProfile() {
   const handleSaveUser = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    await updateMe(userName);
+    const updatedUser = await updateMe(userName);
+    setUser(updatedUser);
     router.push("/profile");
   };
 

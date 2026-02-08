@@ -6,13 +6,13 @@ import { useAuthStore } from "@/lib/store/authStore";
 
 import css from "./SignInPage.module.css";
 
-function SingIn() {
+function SignIn() {
   const router = useRouter();
   const [error, setError] = useState("");
 
   const setUser = useAuthStore((state) => state.setUser);
 
-  const handelSubmit = async (formData: FormData) => {
+  const handleSubmit = async (formData: FormData) => {
     try {
       const formValues = Object.fromEntries(formData) as LoginRequest;
 
@@ -30,7 +30,7 @@ function SingIn() {
   };
   return (
     <main className={css.mainContent}>
-      <form action={handelSubmit} className={css.form}>
+      <form action={handleSubmit} className={css.form}>
         <h1 className={css.formTitle}>Sign in</h1>
 
         <div className={css.formGroup}>
@@ -66,4 +66,4 @@ function SingIn() {
   );
 }
 
-export default SingIn;
+export default SignIn;
