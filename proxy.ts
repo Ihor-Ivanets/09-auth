@@ -1,5 +1,3 @@
-// proxy.ts
-
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { parse } from "cookie";
@@ -30,16 +28,24 @@ export async function proxy(request: NextRequest) {
         const cookieArray = Array.isArray(setCookie) ? setCookie : [setCookie];
         for (const cookieStr of cookieArray) {
           const parsed = parse(cookieStr);
-          const options = {
-            expires: parsed.Expires ? new Date(parsed.Expires) : undefined,
-            path: parsed.Path,
-            maxAge: Number(parsed["Max-Age"]),
-          };
+          const options: { path?: string; expires?: Date; maxAge?: number } =
+            {};
+          if (parsed.Path) options.path = parsed.Path;
+          if (parsed.Expires) {
+            const date = new Date(parsed.Expires);
+            if (!isNaN(date.getTime())) options.expires = date;
+          }
+          if (parsed["Max-Age"]) {
+            const maxAge = Number(parsed["Max-Age"]);
+            if (!isNaN(maxAge)) options.maxAge = maxAge;
+          }
+
           if (parsed.accessToken)
             cookieStore.set("accessToken", parsed.accessToken, options);
           if (parsed.refreshToken)
             cookieStore.set("refreshToken", parsed.refreshToken, options);
         }
+
         if (isPublicRoute) {
           return NextResponse.redirect(new URL("/", request.url), {
             headers: {
@@ -54,6 +60,11 @@ export async function proxy(request: NextRequest) {
             },
           });
         }
+        return NextResponse.next({
+          headers: {
+            Cookie: cookieStore.toString(),
+          },
+        });
       }
     }
     if (isPublicRoute) {
@@ -72,6 +83,7 @@ export async function proxy(request: NextRequest) {
   if (isPrivateRoute) {
     return NextResponse.next();
   }
+  return NextResponse.next();
 }
 
 export const config = {
